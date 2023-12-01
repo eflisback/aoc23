@@ -1,0 +1,6 @@
+.metals
+.vscode
+.scalafmt.conf
+.bsp
+.scala-build
+data.txt
