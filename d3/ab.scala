@@ -30,11 +30,26 @@
             partSum += rowSum
         partSum
 
-    var sum = 0
+    def extractGearRatio(y: Int, x: Int): Int = 
+        var ratio = 1
+        var adjacentNumbersCount = 0
+        for i <- -1 to 1 if 0 until matrix.length contains y + i do
+            val factors = getAdjacentNumbersOnRow(y + i, x)
+            val ratioProduct = factors.product
+            if ratioProduct != 0 then 
+                adjacentNumbersCount += factors.length
+                ratio *= ratioProduct
+        if adjacentNumbersCount == 2 then ratio else 0
+
+
+    var totalPartSum = 0
+    var gearRatioSum = 0
 
     for (row, y) <- matrix.zipWithIndex do
         for (element, x) <- row.zipWithIndex do
-            if !element.isDigit && !(element == '.') then sum += extractPartSum(y, x)
+            if !element.isDigit && !(element == '.') then totalPartSum += extractPartSum(y, x)
+            if element == '*' then gearRatioSum += extractGearRatio(y, x)
+
     
-    println(sum)
+    println(s"Total part sum: $totalPartSum, gear ratio sum: $gearRatioSum")
     
