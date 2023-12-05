@@ -11,11 +11,11 @@ def getRangePair(line: String): RangePair =
   var categories: Vector[Vector[RangePair]] = Vector.empty
   var categoryIndex = 0
 
-  def addToCategories(rm: RangePair): Unit =
+  def addToCategories(rp: RangePair): Unit =
     if categoryIndex >= categories.length then
       categories = categories :+ Vector.empty
     categories =
-      categories.updated(categoryIndex, categories(categoryIndex) :+ rm)
+      categories.updated(categoryIndex, categories(categoryIndex) :+ rp)
 
   for line <- lines.drop(3) do
     if line.isBlank then categoryIndex += 1
