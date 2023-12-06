@@ -39,44 +39,40 @@ def getRangePair(line: String): RangePair =
     var inputRangesStack = inputRanges
     var outputRanges: Array[(Long, Long)] = Array.empty
 
-    while inputRangesStack.nonEmpty do
-      for (transformer, i) <- transformers.zipWithIndex do
-        println(s"Category ${i + 1}")
-        inputRangesStack.foreach(inputRange =>
-          if transformer._2 contains inputRange then
-            println(s"Fully covered: $transformer, $inputRange")
-            outputRanges = outputRanges :+ (
-              transformer._1._1 - transformer._2._1 + inputRange._1,
-              transformer._1._1 - transformer._2._1 + inputRange._2
-            )
-            inputRangesStack = inputRangesStack.filterNot(_ == inputRange)
-          else if (transformer._2 intersectsRight inputRange) || (transformer._2 intersectsLeft inputRange) then
-            println(s"Partial overlap: $transformer, $inputRange")
-            val intersectionStart = Math.max(transformer._2._1, inputRange._1)
-            val intersectionEnd = Math.min(transformer._2._2, inputRange._2)
-
-            if intersectionStart > inputRange._1 then
-              outputRanges = outputRanges :+ (inputRange._1, intersectionStart - 1)
-
-            outputRanges = outputRanges :+ (
-              transformer._1._1 - transformer._2._1 + intersectionStart,
-              transformer._1._1 - transformer._2._1 + intersectionEnd
-            )
-
-            if intersectionEnd < inputRange._2 then
-              outputRanges = outputRanges :+ (intersectionEnd + 1, inputRange._2)
-
-            inputRangesStack = inputRangesStack.filterNot(_ == inputRange)
-          else 
-            println(s"Suitable source range for $inputRange not fuond")
-            outputRanges = outputRanges :+ inputRange
-            inputRangesStack = inputRangesStack.filterNot(_ == inputRange)
-        )
+    for (transformer, i) <- transformers.zipWithIndex do
+      println(s"Transformer ${i + 1}")
+      inputRangesStack.foreach(range =>
+        if transformer._2 contains range then
+          val rangeLength = range._2 - range._1
+          val transformedRangeStart = transformer._1._1 - transformer._2._1 + range._1
+          outputRanges = outputRanges :+ (transformedRangeStart, transformedRangeStart + rangeLength)
+          inputRangesStack = inputRangesStack.filterNot(_ == range)
+        else if transformer._2 intersectsLeft range then
+          val overlap = (transformer._2._1, range._2)
+          val remaining = (overlap._2, range._2)
+          val transformedOverlapStart = transformer._1._1
+          val transformedRangeStart = transformedOverlapStart - transformer._2._1 + overlap._1
+          outputRanges = outputRanges :+ (transformedRangeStart, transformedRangeStart + (overlap._2 - overlap._1))
+          inputRangesStack = inputRangesStack.filterNot(_ == range)
+          inputRangesStack = inputRangesStack :+ remaining
+        else if transformer._2 intersectsRight range then
+          val overlap = (range._1, transformer._2._2)
+          val remaining = (range._1, overlap._1)
+          val transformedOverlapStart = transformer._1._1 - transformer._2._1 + overlap._1
+          outputRanges = outputRanges :+ (transformedOverlapStart, transformedOverlapStart + (overlap._2 - overlap._1))
+          inputRangesStack = inputRangesStack.filterNot(_ == range)
+          inputRangesStack = inputRangesStack :+ remaining
+      )
+      
+    // Any remaining input ranges should be added to the output ranges
+    outputRanges = outputRanges ++ inputRangesStack    
     outputRanges
 
   var ranges = seedRanges
-  for (category <- categories) do
+  for (category, i) <- categories.zipWithIndex do
+    println(s"Category ${i + 1}")
     val result = processInputRanges(ranges, category)
     ranges = result
 
-    println(s"Lowest low: ${result.map(_._1).min}")
+  
+  println(s"Lowest low: ${ranges.map(_._1).min}")
