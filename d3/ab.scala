@@ -41,7 +41,6 @@
                 ratio *= ratioProduct
         if adjacentNumbersCount == 2 then ratio else 0
 
-
     var totalPartSum = 0
     var gearRatioSum = 0
 
@@ -50,6 +49,5 @@
             if !element.isDigit && !(element == '.') then totalPartSum += extractPartSum(y, x)
             if element == '*' then gearRatioSum += extractGearRatio(y, x)
 
-    
     println(s"Total part sum: $totalPartSum, gear ratio sum: $gearRatioSum")
     
