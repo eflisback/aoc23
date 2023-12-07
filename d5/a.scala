@@ -7,7 +7,6 @@ def getRangePair(line: String): RangePair =
 
 @main def run =
   val lines = scala.io.Source.fromFile("./data.txt").getLines.toVector
-
   var categories: Vector[Vector[RangePair]] = Vector.empty
   var categoryIndex = 0
 
