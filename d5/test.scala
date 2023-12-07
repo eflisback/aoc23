@@ -33,39 +33,50 @@ def getRangePair(line: String): RangePair =
     yield (rangeLimits(i * 2), rangeLimits(i * 2) + rangeLimits(i * 2 + 1))
     ).toArray
 
-  var lowest: Long = Long.MaxValue
-
   def processInputRanges(inputRanges: Array[(Long, Long)], transformers: Vector[RangePair]): Array[(Long, Long)] =
     var inputRangesStack = inputRanges
     var outputRanges: Array[(Long, Long)] = Array.empty
+    println(s"Input ranges are ${inputRangesStack.mkString(", ")}")
 
-    for (transformer, i) <- transformers.zipWithIndex do
-      println(s"Transformer ${i + 1}")
-      inputRangesStack.foreach(range =>
+    while !inputRangesStack.isEmpty do
+      var foundSuitingTransformer = false
+      val range = inputRangesStack(0)
+      transformers.foreach(transformer =>
         if transformer._2 contains range then
           val rangeLength = range._2 - range._1
           val transformedRangeStart = transformer._1._1 - transformer._2._1 + range._1
           outputRanges = outputRanges :+ (transformedRangeStart, transformedRangeStart + rangeLength)
           inputRangesStack = inputRangesStack.filterNot(_ == range)
+
+          foundSuitingTransformer = true
         else if transformer._2 intersectsLeft range then
+          // Overlap range
           val overlap = (transformer._2._1, range._2)
-          val remaining = (overlap._2, range._2)
-          val transformedOverlapStart = transformer._1._1
-          val transformedRangeStart = transformedOverlapStart - transformer._2._1 + overlap._1
-          outputRanges = outputRanges :+ (transformedRangeStart, transformedRangeStart + (overlap._2 - overlap._1))
+          val overlapLength = overlap._2 - overlap._1
+          outputRanges = outputRanges :+ (transformer._1._1, transformer._1._1 + overlapLength)
           inputRangesStack = inputRangesStack.filterNot(_ == range)
-          inputRangesStack = inputRangesStack :+ remaining
+
+          // Remaining
+          inputRangesStack = inputRangesStack :+ (range._1, transformer._2._1)
+
+          foundSuitingTransformer = true
         else if transformer._2 intersectsRight range then
-          val overlap = (range._1, transformer._2._2)
-          val remaining = (range._1, overlap._1)
-          val transformedOverlapStart = transformer._1._1 - transformer._2._1 + overlap._1
-          outputRanges = outputRanges :+ (transformedOverlapStart, transformedOverlapStart + (overlap._2 - overlap._1))
+          // Overlap range
+          val overlap = (range._1, transformer._2._1)
+          val overlapLength = overlap._2 - overlap._1
+          outputRanges = outputRanges :+ (transformer._1._2 - overlapLength, transformer._1._2)
           inputRangesStack = inputRangesStack.filterNot(_ == range)
-          inputRangesStack = inputRangesStack :+ remaining
+
+          // Remaining
+          inputRangesStack = inputRangesStack :+ (transformer._2._2, range._2)
+
+          foundSuitingTransformer = true
       )
-      
-    // Any remaining input ranges should be added to the output ranges
-    outputRanges = outputRanges ++ inputRangesStack    
+      if !foundSuitingTransformer then 
+        outputRanges = outputRanges :+ range
+        inputRangesStack = inputRangesStack.filterNot(_ == range)
+    
+    println(s"Output ranges are ${outputRanges.mkString(", ")}")
     outputRanges
 
   var ranges = seedRanges
